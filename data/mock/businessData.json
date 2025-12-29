@@ -1,0 +1,75 @@
+{
+  "scenarios": {
+    "normal": {
+      "name": "正常运营",
+      "description": "业务平稳发展，各项指标在小幅范围内正常波动",
+      "baseMetrics": {
+        "revenue": { "value": 5000000, "unit": "元", "volatility": 0.05 },
+        "orders": { "value": 12000, "unit": "单", "volatility": 0.08 },
+        "activeUsers": { "value": 120000, "unit": "人", "volatility": 0.06 },
+        "conversionRate": { "value": 3.2, "unit": "%", "volatility": 0.1 },
+        "avgOrderValue": { "value": 417, "unit": "元", "volatility": 0.04 },
+        "grossMargin": { "value": 35, "unit": "%", "volatility": 0.03 },
+        "repurchaseRate": { "value": 28, "unit": "%", "volatility": 0.08 }
+      }
+    },
+    "promotion": {
+      "name": "促销活动",
+      "description": "大型促销活动，市场反响热烈，各项指标大幅上升",
+      "baseMetrics": {
+        "revenue": { "value": 7500000, "unit": "元", "volatility": 0.12 },
+        "orders": { "value": 20000, "unit": "单", "volatility": 0.15 },
+        "activeUsers": { "value": 180000, "unit": "人", "volatility": 0.1 },
+        "conversionRate": { "value": 4.5, "unit": "%", "volatility": 0.15 },
+        "avgOrderValue": { "value": 375, "unit": "元", "volatility": 0.08 },
+        "grossMargin": { "value": 32, "unit": "%", "volatility": 0.05 },
+        "repurchaseRate": { "value": 35, "unit": "%", "volatility": 0.1 }
+      }
+    },
+    "off_season": {
+      "name": "业务淡季",
+      "description": "市场需求疲软，各项指标有所下降",
+      "baseMetrics": {
+        "revenue": { "value": 3500000, "unit": "元", "volatility": 0.1 },
+        "orders": { "value": 8000, "unit": "单", "volatility": 0.12 },
+        "activeUsers": { "value": 90000, "unit": "人", "volatility": 0.08 },
+        "conversionRate": { "value": 2.8, "unit": "%", "volatility": 0.12 },
+        "avgOrderValue": { "value": 438, "unit": "元", "volatility": 0.06 },
+        "grossMargin": { "value": 33, "unit": "%", "volatility": 0.04 },
+        "repurchaseRate": { "value": 25, "unit": "%", "volatility": 0.1 }
+      }
+    },
+    "anomaly": {
+      "name": "异常事件",
+      "description": "突发情况导致数据异常波动",
+      "baseMetrics": {
+        "revenue": { "value": 2500000, "unit": "元", "volatility": 0.3 },
+        "orders": { "value": 5000, "unit": "单", "volatility": 0.4 },
+        "activeUsers": { "value": 60000, "unit": "人", "volatility": 0.25 },
+        "conversionRate": { "value": 2.0, "unit": "%", "volatility": 0.3 },
+        "avgOrderValue": { "value": 500, "unit": "元", "volatility": 0.15 },
+        "grossMargin": { "value": 28, "unit": "%", "volatility": 0.1 },
+        "repurchaseRate": { "value": 18, "unit": "%", "volatility": 0.2 }
+      }
+    }
+  },
+  "regionalData": {
+    "east": { "name": "华东区", "weight": 0.35, "growth": 0.08 },
+    "south": { "name": "华南区", "weight": 0.28, "growth": 0.12 },
+    "north": { "name": "华北区", "weight": 0.22, "growth": 0.05 },
+    "west": { "name": "西部区", "weight": 0.15, "growth": 0.15 }
+  },
+  "productCategories": [
+    { "name": "电子产品", "revenueShare": 0.45, "margin": 28 },
+    { "name": "家居用品", "revenueShare": 0.25, "margin": 35 },
+    { "name": "服装服饰", "revenueShare": 0.18, "margin": 42 },
+    { "name": "食品饮料", "revenueShare": 0.12, "margin": 25 }
+  ],
+  "timePatterns": {
+    "morning": { "hours": [6, 7, 8, 9, 10, 11], "multiplier": 0.6 },
+    "noon": { "hours": [12, 13, 14], "multiplier": 0.4 },
+    "afternoon": { "hours": [15, 16, 17], "multiplier": 0.9 },
+    "evening": { "hours": [18, 19, 20, 21], "multiplier": 1.2 },
+    "night": { "hours": [22, 23, 0, 1, 2, 3, 4, 5], "multiplier": 0.2 }
+  }
+}
