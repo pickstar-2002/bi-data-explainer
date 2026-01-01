@@ -8,6 +8,8 @@ import { ScenarioSwitcher } from './components/Data/ScenarioSwitcher';
 import { RegionalChart } from './components/Dashboard/RegionalChart';
 import { ProductChart } from './components/Dashboard/ProductChart';
 import { ChatBox } from './components/Chat/ChatBox';
+import { TaskPanel } from './components/Dashboard/TaskPanel';
+import { AlertSystem } from './components/Dashboard/AlertSystem';
 import keyService from './services/keyService';
 import dataService from './services/dataService';
 import { useKeyStore } from './store/keyStore';
@@ -15,7 +17,7 @@ import { useAvatarStore } from './store/avatarStore';
 import AvatarController from './components/Avatar/AvatarController';
 import type { AIGeneratedData } from './services/dataService';
 
-type ViewMode = 'overview' | 'regional' | 'product' | 'chat';
+type ViewMode = 'overview' | 'regional' | 'product' | 'chat' | 'tasks' | 'alerts';
 
 function App() {
   const { isConfigured, setConfigured, setKeys } = useKeyStore();
@@ -287,7 +289,7 @@ function App() {
 
           {/* 右侧：视图切换 */}
           <div className="flex gap-2">
-            {(['overview', 'regional', 'product', 'chat'] as ViewMode[]).map((mode) => (
+            {(['overview', 'regional', 'product', 'chat', 'tasks', 'alerts'] as ViewMode[]).map((mode) => (
               <button
                 key={mode}
                 onClick={() => setViewMode(mode)}
@@ -301,6 +303,8 @@ function App() {
                 {mode === 'regional' ? '🌍 地区' : ''}
                 {mode === 'product' ? '📦 产品' : ''}
                 {mode === 'chat' ? '💬 对话' : ''}
+                {mode === 'tasks' ? '📋 任务' : ''}
+                {mode === 'alerts' ? '🔔 报警' : ''}
               </button>
             ))}
           </div>
@@ -386,6 +390,18 @@ function App() {
           {viewMode === 'chat' && (
             <div className="h-full">
               <ChatBox currentData={aiData} onSpeak={handleAvatarSpeak} />
+            </div>
+          )}
+
+          {viewMode === 'tasks' && (
+            <div className="h-full">
+              <TaskPanel currentData={aiData} />
+            </div>
+          )}
+
+          {viewMode === 'alerts' && (
+            <div className="h-full">
+              <AlertSystem currentData={aiData} />
             </div>
           )}
         </div>

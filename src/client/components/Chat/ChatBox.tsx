@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import keyService from '../../services/keyService';
+import avatarController from '../Avatar/AvatarController';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -16,8 +17,65 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ currentData, onSpeak }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [speakingStatus, setSpeakingStatus] = useState<'idle' | 'speaking'>('idle');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const recognitionRef = useRef<any>(null);
+
+  // 初始化语音识别
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.lang = 'zh-CN';
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = true;
+
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = Array.from(event.results)
+          .map((result: any) => result[0])
+          .map((result) => result.transcript)
+          .join('');
+
+        setInputValue(transcript);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+      };
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+    };
+  }, []);
+
+  // 开始语音输入
+  const startListening = () => {
+    if (!recognitionRef.current) {
+      alert('您的浏览器不支持语音识别功能，请使用Chrome浏览器。');
+      return;
+    }
+
+    setIsListening(true);
+    recognitionRef.current.start();
+  };
+
+  // 停止语音输入
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsListening(false);
+  };
 
   // 自动滚动到底部
   useEffect(() => {
@@ -110,11 +168,27 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ currentData, onSpeak }) => {
               } else if (parsed.type === 'end') {
                 setIsLoading(false);
 
-                // 自动播报
-                const finalContent = messages[messages.length - 1]?.content || '';
-                if (finalContent && onSpeak) {
-                  onSpeak(finalContent);
-                }
+                // 数字人播报响应
+                setMessages(prev => {
+                  const newMessages = [...prev];
+                  const lastMessage = newMessages[newMessages.length - 1];
+                  if (lastMessage && lastMessage.role === 'assistant' && lastMessage.content) {
+                    // 使用数字人SDK播报
+                    try {
+                      avatarController.speak({
+                        text: lastMessage.content,
+                        isStart: true,
+                        isEnd: true
+                      });
+                      setSpeakingStatus('speaking');
+                      // 模拟播报结束
+                      setTimeout(() => setSpeakingStatus('idle'), 5000);
+                    } catch (e) {
+                      console.log('Avatar speak failed:', e);
+                    }
+                  }
+                  return newMessages;
+                });
               } else if (parsed.type === 'error') {
                 setIsLoading(false);
                 setMessages(prev => {
@@ -252,10 +326,22 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ currentData, onSpeak }) => {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-            placeholder="输入问题..."
+            placeholder="输入问题或点击麦克风说话..."
             disabled={isLoading}
             className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-white placeholder-white/40 focus:outline-none focus:border-blue-400 disabled:opacity-50"
           />
+          <button
+            onClick={isListening ? stopListening : startListening}
+            disabled={isLoading}
+            className={`px-3 py-2 rounded-xl transition ${
+              isListening
+                ? 'bg-red-500 hover:bg-red-600 animate-pulse'
+                : 'bg-white/20 hover:bg-white/30'
+            } text-white`}
+            title={isListening ? '停止录音' : '开始语音输入'}
+          >
+            🎤
+          </button>
           <button
             onClick={sendMessage}
             disabled={isLoading || !inputValue.trim()}
@@ -263,6 +349,19 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ currentData, onSpeak }) => {
           >
             {isLoading ? '发送中' : '发送'}
           </button>
+        </div>
+
+        {/* 状态提示 */}
+        <div className="flex justify-between items-center mt-2 text-xs">
+          <div className="flex items-center gap-3">
+            {isListening && (
+              <span className="text-red-400 animate-pulse">🎙️ 正在录音...</span>
+            )}
+            {speakingStatus === 'speaking' && (
+              <span className="text-green-400">🗣️ 数字人正在回答...</span>
+            )}
+          </div>
+          <span className="text-white/40">支持语音输入 | AI响应自动播报</span>
         </div>
       </div>
     </div>
