@@ -19,6 +19,112 @@ import type { AIGeneratedData } from './services/dataService';
 
 type ViewMode = 'overview' | 'regional' | 'product' | 'chat' | 'tasks' | 'alerts';
 
+// 可拖动数字人组件
+interface DraggableAvatarProps {
+  children: React.ReactNode;
+}
+
+// 添加空行触发更新
+
+
+const DraggableAvatar: React.FC<DraggableAvatarProps> = ({ children }) => {
+  const positionRef = React.useRef({ x: 0, y: 0 });
+  const isDraggingRef = React.useRef(false);
+  const dragStartRef = React.useRef({ x: 0, y: 0 });
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    // 初始化位置在右侧中间
+    if (containerRef.current) {
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+      const size = Math.min(screenWidth, screenHeight) * 0.35;
+      positionRef.current = {
+        x: screenWidth - size - 20,
+        y: screenHeight / 2 - size / 2
+      };
+      updatePosition();
+    }
+
+    const handleMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // 只在点击拖动手柄时开始拖动
+      if (target.closest('[data-drag-handle]')) {
+        isDraggingRef.current = true;
+        dragStartRef.current = {
+          x: e.clientX - positionRef.current.x,
+          y: e.clientY - positionRef.current.y
+        };
+        e.preventDefault();
+      }
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDraggingRef.current) return;
+
+      const newX = e.clientX - dragStartRef.current.x;
+      const newY = e.clientY - dragStartRef.current.y;
+
+      // 边界检查
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+      const container = containerRef.current;
+      if (container) {
+        const width = container.offsetWidth;
+        const height = container.offsetHeight;
+
+        positionRef.current = {
+          x: Math.max(0, Math.min(newX, screenWidth - width)),
+          y: Math.max(0, Math.min(newY, screenHeight - height))
+        };
+        updatePosition();
+      }
+    };
+
+    const handleMouseUp = () => {
+      isDraggingRef.current = false;
+    };
+
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
+  const updatePosition = () => {
+    if (containerRef.current) {
+      containerRef.current.style.left = `${positionRef.current.x}px`;
+      containerRef.current.style.top = `${positionRef.current.y}px`;
+    }
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className="fixed w-[35vw] h-[35vw] min-w-[350px] min-h-[350px] z-50 pointer-events-auto"
+      style={{ transform: 'none' }}
+    >
+      {/* 拖动手柄 */}
+      <div
+        data-drag-handle
+        className="absolute -top-8 left-1/2 -translate-x-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-sm px-4 py-1 rounded-full border border-white/30 cursor-move transition"
+      >
+        <div className="flex items-center gap-2 text-white text-xs">
+          <span>⋮⋮</span>
+          <span>拖动移动</span>
+        </div>
+      </div>
+
+      {children}
+    </div>
+  );
+};
+
 function App() {
   const { isConfigured, setConfigured, setKeys } = useKeyStore();
   const { status } = useAvatarStore();
@@ -224,8 +330,8 @@ function App() {
 
   return (
     <DashboardLayout lastUpdateTime={lastUpdateTime}>
-      {/* AI讲解员 - 固定在屏幕中央20%位置 */}
-      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[20vw] h-[20vw] min-w-[300px] min-h-[300px] z-50 pointer-events-none">
+      {/* AI讲解员 - 可拖动，大尺寸35vw */}
+      <DraggableAvatar>
         <div className="relative w-full h-full">
           {/* 半透明背景圆 */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-full backdrop-blur-sm border-2 border-white/30 shadow-2xl"></div>
@@ -273,7 +379,7 @@ function App() {
             </div>
           )}
         </div>
-      </div>
+      </DraggableAvatar>
 
       <div className="h-full flex flex-col gap-3">
         {/* 顶部栏 */}

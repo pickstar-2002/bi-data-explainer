@@ -50,9 +50,9 @@ export const ApiKeyConfig: React.FC<ApiKeyConfigProps> = ({ onConfigured }) => {
     setError('');
     setTestResult(null);
 
-    // 基本验证
-    if (!modelscopeApiKey.trim() || !xmovAppId.trim() || !xmovAppSecret.trim()) {
-      setError('请先填写所有密钥');
+    // 基本验证 - 只需验证魔搭密钥
+    if (!modelscopeApiKey.trim()) {
+      setError('请先填写魔搭API密钥');
       return;
     }
 
@@ -70,8 +70,8 @@ export const ApiKeyConfig: React.FC<ApiKeyConfigProps> = ({ onConfigured }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           modelscopeApiKey: modelscopeApiKey.trim(),
-          xmovAppId: xmovAppId.trim(),
-          xmovAppSecret: xmovAppSecret.trim()
+          xmovAppId: xmovAppId.trim() || '',
+          xmovAppSecret: xmovAppSecret.trim() || ''
         })
       });
 
@@ -105,7 +105,7 @@ export const ApiKeyConfig: React.FC<ApiKeyConfigProps> = ({ onConfigured }) => {
     setTestResult(null);
     setIsSaving(true);
 
-    // 验证输入
+    // 验证输入 - 只验证魔搭密钥
     if (!modelscopeApiKey.trim()) {
       setError('请输入魔搭API密钥');
       setIsSaving(false);
@@ -118,18 +118,12 @@ export const ApiKeyConfig: React.FC<ApiKeyConfigProps> = ({ onConfigured }) => {
       return;
     }
 
-    if (!xmovAppId.trim() || !xmovAppSecret.trim()) {
-      setError('请输入完整的魔珐星云配置信息');
-      setIsSaving(false);
-      return;
-    }
-
     try {
-      // 保存密钥到localStorage
+      // 保存密钥到localStorage（星云密钥可选）
       keyService.saveApiKeys({
         modelscopeApiKey: modelscopeApiKey.trim(),
-        xmovAppId: xmovAppId.trim(),
-        xmovAppSecret: xmovAppSecret.trim()
+        xmovAppId: xmovAppId.trim() || '',
+        xmovAppSecret: xmovAppSecret.trim() || ''
       });
 
       // 延迟一下让用户看到保存成功的反馈
@@ -190,7 +184,7 @@ export const ApiKeyConfig: React.FC<ApiKeyConfigProps> = ({ onConfigured }) => {
             <div>
               <div className="flex justify-between items-center mb-2">
                 <label className="block text-white font-medium">
-                  魔珐星云 App ID <span className="text-red-400">*</span>
+                  魔珐星云 App ID <span className="text-gray-400">(可选)</span>
                 </label>
                 <button
                   type="button"
@@ -206,14 +200,13 @@ export const ApiKeyConfig: React.FC<ApiKeyConfigProps> = ({ onConfigured }) => {
                 onChange={(e) => setXmovAppId(e.target.value)}
                 placeholder="xxxxxxxxxx"
                 className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
               />
             </div>
 
             {/* 魔珐星云 App Secret */}
             <div>
               <label className="block text-white font-medium mb-2">
-                魔珐星云 App Secret <span className="text-red-400">*</span>
+                魔珐星云 App Secret <span className="text-gray-400">(可选)</span>
               </label>
               <div className="relative">
                 <input
@@ -222,7 +215,6 @@ export const ApiKeyConfig: React.FC<ApiKeyConfigProps> = ({ onConfigured }) => {
                   onChange={(e) => setXmovAppSecret(e.target.value)}
                   placeholder="xxxxxxxxxx"
                   className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-24"
-                  required
                 />
                 <button
                   type="button"
@@ -279,8 +271,9 @@ export const ApiKeyConfig: React.FC<ApiKeyConfigProps> = ({ onConfigured }) => {
               <button
                 type="button"
                 onClick={handleTestKeys}
-                disabled={isTesting || !modelscopeApiKey || !xmovAppId || !xmovAppSecret}
+                disabled={isTesting || !modelscopeApiKey}
                 className="px-6 bg-green-500/80 hover:bg-green-500 text-white py-3 rounded-xl font-medium transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                title="只需填写魔搭密钥即可测试"
               >
                 {isTesting ? '🔄 测试中...' : '🧪 测试密钥'}
               </button>
